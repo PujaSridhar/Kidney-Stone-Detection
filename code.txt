@@ -1,0 +1,55 @@
+clc
+clear all
+close all
+warning off
+[filename,pathname]=uigetfile('*.*','Pick a MATLAB code file');
+filename=strcat(pathname,filename);
+a=imread(filename);
+subplot(2,3,1);imshow(a);title("original image");
+b=rgb2gray(a);
+subplot(2,3,2);
+imshow(b); title("gray scale");
+impixelinfo;
+c=b>20;
+subplot(2,3,3);
+imshow(c);title("binary image");
+d=imfill(c,'holes');
+subplot(2,3,4);
+imshow(d);title("holes filled");
+e=bwareaopen(d,1000);
+subplot(2,3,5);
+imshow(e);title("mask applied");
+PreprocessedImage=uint8(double(a).*repmat(e,[1 1 3]));
+subplot(2,3,6);
+imshow(PreprocessedImage);title("mask applied on original image");
+PreprocessedImage=imadjust(PreprocessedImage,[0.3 0.7],[])+50;
+figure;
+subplot(2,3,1);
+imshow(PreprocessedImage);title("contrast adjusted");
+uo=rgb2gray(PreprocessedImage);
+subplot(2,3,2);
+imshow(uo);title("grayscaled contrasted image");
+mo=medfilt2(uo,[5 5]);
+subplot(2,3,3);
+imshow(mo);title("removed undesirable parts");
+po=mo>250;
+subplot(2,3,4);
+imshow(po);title("filtered binary image");
+[r c m]=size(po);
+x1=r/2;
+y1=c/3;
+row=[x1 x1+200 x1+200 x1];
+col=[y1 y1 y1+40 y1+40];
+BW=roipoly(po,row,col);
+subplot(2,3,5);
+imshow(BW);title("filtered region of interest");
+k=po.*double(BW);
+subplot(2,3,6);
+imshow(k);title("final output")
+M=bwareaopen(k,4);
+[ya number]=bwlabel(M);
+if(number>=1)
+disp('Stone is Detected');
+else
+disp('No Stone is detected');
+end
